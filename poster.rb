@@ -7,11 +7,11 @@ ARCHIVEDIR = "/home/mj/tweetfirearchive/"
 POSTQUEUE = WORKINGDIR + "firequeue"
 TEMPQUEUE = WORKINGDIR + "firequeue.tmp"
 POSTARCHIVE = WORKINGDIR + "archive.txt"
-TWITTER_CONSUMER_KEY = "NM3AGMdWNiD5c9YOSbJ2w"
-TWITTER_CONSUMER_SECRET = "ebsMMNguFqjF95TyOPiU3tD8uhDNGqtdI0FJr7ykzo"
-TWITTER_ACCESS_TOKEN = "1903878085-z5hOVB9HPNZLiYDjDCbbXOsqEcLK9ehFiTAYDKn"
-TWITTER_ACCESS_TOKEN_SECRET = "UBaFQOBPKb5d4QpzPxEi7MuXkK1HQyCIPDd3fge0Os1BU"
-YOURLS_TOKEN = "1e64a6c492"
+TWITTER_CONSUMER_KEY = 
+TWITTER_CONSUMER_SECRET = 
+TWITTER_ACCESS_TOKEN = 
+TWITTER_ACCESS_TOKEN_SECRET = 
+YOURLS_TOKEN = 
 
 #Set global twitter client
 $tw_client = nil
@@ -78,6 +78,7 @@ def read_scraper_queue
     f = File.read(TEMPQUEUE)
     post_queue = Marshal.load(f)
     if post_queue
+      post_queue = post_queue.shuffle
       to_be_posted = post_queue.shift
       f = File.open(TEMPQUEUE,"w")
       f.write(Marshal.dump(post_queue))
