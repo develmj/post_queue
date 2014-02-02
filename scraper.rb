@@ -75,18 +75,9 @@ def write_to_post_queue
   new_posts = get_new_posts
   old_posts = get_old_posts
   to_be_posted = filter_out_old_posts(old_posts,new_posts)
-  if File.exist?(POSTQUEUE)
-    f = File.read(POSTQUEUE)
-    post_queue = Marshal.load(f)
-    if post_queue.is_a?(Array)
-      post_queue = post_queue + to_be_posted
-      f = File.open(POSTQUEUE,"w")
-      f.write(Marshal.dump(post_queue))
-      f.close
-    else
-      return nil
-    end
-  end
+  f = File.open(POSTQUEUE,"w")
+  f.write(Marshal.dump(to_be_posted))
+  f.close
 end
 
 write_to_post_queue
