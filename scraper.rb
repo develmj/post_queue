@@ -6,7 +6,7 @@ BADSITES = WORKINGDIR + "adulturls"
 BADWORDS = WORKINGDIR + "badwords"
 OLDPOSTS = WORKINGDIR + "old_posts"
 POSTQUEUE = WORKINGDIR + "firequeue"
-SUBREDDITS = ["technology"]
+SUBREDDITS = [["technology",100],["cloud",50]]
 AVOIDLINKS = ["reddit.com"]
 AVOIDWORDS = ["IAMA"]
 
@@ -29,8 +29,8 @@ end
 def get_new_posts
   collector = []
   reddit = Snooby::Client.new
-  SUBREDDITS.each{|subreddit|
-    posts = reddit.subreddit(subreddit).posts(100)
+  SUBREDDITS.each{|subreddit,count|
+    posts = reddit.subreddit(subreddit).posts(count)
     if posts.is_a?(Array)
       posts.each{|post|
         collector << [post.title,post.url] if (abandon_link?(post.url) and abandon_title?(post.title))
@@ -74,7 +74,7 @@ end
 def write_to_post_queue
   new_posts = get_new_posts
   old_posts = get_old_posts
-  to_be_posted = filter_out_old_posts(old_posts,new_posts)
+  to_be_posted = filter_out_old_posts(old_posts,new_posts).uniq
   f = File.open(POSTQUEUE,"w")
   f.write(Marshal.dump(to_be_posted))
   f.close
