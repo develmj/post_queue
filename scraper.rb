@@ -41,10 +41,16 @@ def get_new_posts
 end
 
 def filter_out_old_posts(old_posts,new_posts)
+  current_posts = []
+  if File.exist?(POSTQUEUE)
+    f = File.read(POSTQUEUE)
+    current_posts = Marshal.load(f)
+  end
   old_post_hash = {}
   new_post_hash = {}
   old_posts.each{|x| old_post_hash[x[0]] = x[1]}
   new_posts.each{|x| new_post_hash[x[0]] = x[1]}
+  current_posts.each{|x| new_post_hash[x[0]] = x[1]}
   old_title_map = old_posts.map{|x| x[0]}.compact
   new_title_map = new_posts.map{|x| x[0]}.compact
   return (new_title_map - old_title_map).map{|x| [x,new_post_hash[x]]}
