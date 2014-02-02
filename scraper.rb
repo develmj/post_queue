@@ -2,8 +2,11 @@ require 'rubygems'
 require 'snooby'
 require 'twitter'
 
-BADSITES = "/home/mj/newurls"
-BADWORDS = "/home/mj/badwords"
+WORKINGDIR = "/home/mj/bgscripts/post_queue/"
+BADSITES = WORKINGDIR + "adulturls"
+BADWORDS = WORKINGDIR + "badwords"
+OLDPOSTS = WORKINGDIR + "old_posts"
+POSTQUEUE = WORKINGDIR + "firequeue"
 SUBREDDITS = ["technology"]
 AVOIDLINKS = ["reddit.com"]
 AVOIDWORDS = []
@@ -69,13 +72,26 @@ def get_new_posts
 end
 
 def filter_out_old_posts(old_posts,new_posts)
-  old_posts
+  old_title_map = old_posts.map{|x| x[0]}.compact
+  new_title_map = new_posts.map{|x| x[0]}.compact
+  return new_title_map - old_title_map
 end
 
 def get_old_posts
+  if File.exist?(OLDPOSTS)
+    f = File.read(OLDPOSTS)
+    begin
+      old_posts = Marsha.load(f)
+      return old_posts if old_posts.is_a?(Array)
+    rescue Exception => e
+      return []
+    end
+  else
+    return []
+  end
 end
 
-def check_aggregation
+def write_to_post_queue
   new_posts = get_new_posts
   old_posts = get_old_posts
   to_be_posted = filter_out_old_posts(old_posts,new_posts)
