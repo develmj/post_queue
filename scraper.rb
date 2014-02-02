@@ -1,45 +1,14 @@
 require 'rubygems'
 require 'snooby'
-require 'twitter'
 
-WORKINGDIR = "/home/mj/bgscripts/post_queue/"
+WORKINGDIR = "/home/mj/torture/post_queue/"
 BADSITES = WORKINGDIR + "adulturls"
 BADWORDS = WORKINGDIR + "badwords"
 OLDPOSTS = WORKINGDIR + "old_posts"
 POSTQUEUE = WORKINGDIR + "firequeue"
 SUBREDDITS = ["technology"]
 AVOIDLINKS = ["reddit.com"]
-AVOIDWORDS = []
-TWITTER_CONSUMER_KEY = 
-TWITTER_CONSUMER_SECRET = 
-TWITTER_ACCESS_TOKEN = 
-TWITTER_ACCESS_TOKEN_SECRET = 
-
-#Set global twitter client
-$tw_client = nil
-
-def initiate_twitter_client
-  $tw_client = Twitter::REST::Client.new({
-                                           :consumer_key => TWITTER_CONSUMER_KEY,
-                                           :consumer_secret => TWITTER_CONSUMER_SECRET,
-                                           :access_token => TWITTER_ACCESS_TOKEN,
-                                           :access_token_secret => TWITTER_ACCESS_TOKEN_SECRET
-                                         })
-end
-
-def format_post(title,url)
-  post = ""
-  post = "#{title} - #{url}" if title.is_a?(String) and url.is_a?(String)
-  return post if post.length > 0 and post.length <= 140
-  return nil
-end
-
-def fire_to_twitter(title,url)
-  if $tw_client
-    post = format_post(title,url)
-    $tw_client.update(post) if post.is_a?(String)
-  end
-end
+AVOIDWORDS = ["IAMA"]
 
 def abandon_link?(link)
   badsites = []
@@ -72,17 +41,22 @@ def get_new_posts
 end
 
 def filter_out_old_posts(old_posts,new_posts)
+  old_post_hash = {}
+  new_post_hash = {}
+  old_posts.each{|x| old_post_hash[x[0]] = x[1]}
+  new_posts.each{|x| new_post_hash[x[0]] = x[1]}
   old_title_map = old_posts.map{|x| x[0]}.compact
   new_title_map = new_posts.map{|x| x[0]}.compact
-  return new_title_map - old_title_map
+  return (new_title_map - old_title_map).map{|x| [x,new_post_hash[x]]}
 end
 
 def get_old_posts
   if File.exist?(OLDPOSTS)
     f = File.read(OLDPOSTS)
     begin
-      old_posts = Marsha.load(f)
+      old_posts = Marshal.load(f)
       return old_posts if old_posts.is_a?(Array)
+      return []
     rescue Exception => e
       return []
     end
@@ -95,4 +69,18 @@ def write_to_post_queue
   new_posts = get_new_posts
   old_posts = get_old_posts
   to_be_posted = filter_out_old_posts(old_posts,new_posts)
+  if File.exist?(POSTQUEUE)
+    f = File.read(POSTQUEUE)
+    post_queue = Marshal.load(f)
+    if post_queue.is_a?(Array)
+      post_queue = post_queue + to_be_posted
+      f = File.open(POSTQUEUE,"w")
+      f.write(Marshal.dump(post_queue))
+      f.close
+    else
+      return nil
+    end
+  end
 end
+
+write_to_post_queue
