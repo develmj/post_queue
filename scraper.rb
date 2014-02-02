@@ -30,7 +30,7 @@ def get_new_posts
   collector = []
   reddit = Snooby::Client.new
   SUBREDDITS.each{|subreddit|
-    posts = reddit.subreddit(subreddit).posts
+    posts = reddit.subreddit(subreddit).posts(100)
     if posts.is_a?(Array)
       posts.each{|post|
         collector << [post.title,post.url] if (abandon_link?(post.url) and abandon_title?(post.title))
