@@ -6,6 +6,7 @@ WORKINGDIR = "/home/mj/torture/post_queue/"
 ARCHIVEDIR = "/home/mj/tweetfirearchive/"
 POSTQUEUE = WORKINGDIR + "firequeue"
 TEMPQUEUE = WORKINGDIR + "firequeue.tmp"
+OLDPOSTS = WORKINGDIR + "old_posts"
 POSTARCHIVE = WORKINGDIR + "archive.txt"
 TWITTER_CONSUMER_KEY = 
 TWITTER_CONSUMER_SECRET = 
@@ -43,11 +44,20 @@ def shorten_url(url,keyword = nil)
   end
 end
 
+def generate_tweet_hash(title)
+  
+end
+
+def clean_title(title)
+  return title.gsub('&amp',"&")
+end
+
 def format_post(title,url)
   return nil if title.to_s == "" or url.to_s == ""
+  cleaned_title = clean_title(title.to_s)
   short_url = shorten_url(url)
   post = ""
-  post = "#{title} - #{short_url}" if title.is_a?(String) and short_url.is_a?(String)
+  post = "#{cleaned_title} - #{short_url}" if cleaned_title.is_a?(String) and short_url.is_a?(String)
   return post if post.length > 0 and post.length <= 140
   return nil
 end
@@ -66,9 +76,14 @@ def fire_to_twitter(title,url)
   end
 end
 
-def write_to_archive(tweet)
+def write_to_archive(tweet,title,url)
   f = File.open(POSTARCHIVE,"a+")
   f.write(tweet + "\n")
+  f.close
+  f = File.open(OLDPOSTS,"w")
+  old_posts = Marshal.load(f)
+  old_posts = old_posts + [[title,url]]
+  f.write(Marshal.dump(old_posts))
   f.close
 end
 
